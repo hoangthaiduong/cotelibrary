@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f8fafc" />
+    <meta
+      name="description"
+      content="Browse the Classroom of the Elite PDF library."
+    />
+    <title>COTE Library — Light Novel Downloads</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --purple: #7c3aed;
+        --radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(ellipse at 10% 0%, #dbeafe 0, transparent 35%),
+          radial-gradient(ellipse at 100% 10%, #ede9fe 0, transparent 30%),
+          var(--bg);
+        color: var(--text);
+        font-family:
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.6;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .navbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px max(5%, calc((100% - 1180px) / 2));
+        background: rgba(255, 255, 255, 0.84);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+
+      .brand-icon {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        color: white;
+        background: linear-gradient(135deg, var(--primary), var(--purple));
+        border-radius: 12px;
+      }
+
+      .nav-label {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .container {
+        width: min(1120px, 90%);
+        margin: auto;
+      }
+
+      .hero {
+        padding: 72px 0 40px;
+        text-align: center;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        padding: 6px 13px;
+        color: #1d4ed8;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1px;
+      }
+
+      h1 {
+        margin: 20px 0 12px;
+        font-size: clamp(34px, 6vw, 57px);
+        line-height: 1.15;
+        letter-spacing: -2px;
+      }
+
+      .gradient-text {
+        color: var(--primary);
+        background: linear-gradient(90deg, #2563eb, #7c3aed);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .hero p {
+        max-width: 600px;
+        margin: auto;
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      .stats {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 26px;
+      }
+
+      .stat {
+        min-width: 112px;
+        padding: 12px 18px;
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+      }
+
+      .stat strong {
+        display: block;
+        font-size: 21px;
+      }
+
+      .stat span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .download-panel {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 25px;
+        margin: 18px 0 36px;
+        background: linear-gradient(120deg, #eff6ff, #f5f3ff);
+        border: 1px solid #dbeafe;
+        border-radius: 22px;
+      }
+
+      .download-panel h2 {
+        margin: 0 0 5px;
+        font-size: 21px;
+      }
+
+      .download-panel p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 12px 18px;
+        border: 0;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 14px;
+        transition:
+          transform 0.2s,
+          background 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .button:hover:not(:disabled) {
+        transform: translateY(-2px);
+      }
+
+      .button:disabled {
+        opacity: 0.65;
+        cursor: wait;
+      }
+
+      .button-primary {
+        color: white;
+        background: var(--primary);
+        box-shadow: 0 5px 15px #2563eb25;
+      }
+
+      .button-primary:hover:not(:disabled) {
+        background: var(--primary-hover);
+      }
+
+      .progress-wrap {
+        display: none;
+        margin-top: 16px;
+      }
+
+      .progress-wrap.visible {
+        display: block;
+      }
+
+      .progress-track {
+        height: 7px;
+        margin-top: 8px;
+        overflow: hidden;
+        background: #dbeafe;
+        border-radius: 99px;
+      }
+
+      .progress-bar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--purple));
+        transition: width 0.2s;
+      }
+
+      .status {
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 22px;
+      }
+
+      .toolbar h2 {
+        margin: 0;
+        font-size: 25px;
+        letter-spacing: -0.6px;
+      }
+
+      .search {
+        width: min(320px, 100%);
+        padding: 11px 14px;
+        color: var(--text);
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        outline: none;
+      }
+
+      .search:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px #2563eb18;
+      }
+
+      .year-section {
+        margin-bottom: 28px;
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.86);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: 0 8px 30px #0f172a06;
+      }
+
+      .year-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .year-heading h3 {
+        margin: 0;
+        font-size: 21px;
+      }
+
+      .year-heading span {
+        padding: 5px 10px;
+        color: var(--muted);
+        background: #f1f5f9;
+        border-radius: 8px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .volume-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .volume-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+        padding: 14px;
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        transition:
+          transform 0.2s,
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .volume-card:hover {
+        transform: translateY(-3px);
+        border-color: #bfdbfe;
+        box-shadow: 0 8px 20px #0f172a08;
+      }
+
+      .pdf-icon {
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        width: 43px;
+        height: 47px;
+        color: #dc2626;
+        background: #fef2f2;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .volume-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .volume-info strong {
+        display: block;
+        overflow-wrap: anywhere;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .volume-info span {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .download-icon {
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        color: var(--primary);
+        background: #eff6ff;
+        border-radius: 10px;
+        font-size: 19px;
+      }
+
+      .download-icon:hover {
+        background: #dbeafe;
+      }
+
+      .empty {
+        display: none;
+        padding: 40px 10px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      footer {
+        margin-top: 55px;
+        padding: 28px 15px;
+        color: var(--muted);
+        text-align: center;
+        font-size: 12px;
+        border-top: 1px solid var(--border);
+      }
+
+      @media (max-width: 850px) {
+        .volume-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .download-panel {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .download-panel .button {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 540px) {
+        .navbar {
+          padding: 12px 5%;
+        }
+        .nav-label {
+          display: none;
+        }
+        .hero {
+          padding-top: 48px;
+        }
+        h1 {
+          letter-spacing: -1px;
+        }
+        .toolbar {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .search {
+          width: 100%;
+        }
+        .year-section {
+          padding: 16px;
+        }
+        .volume-grid {
+          grid-template-columns: 1fr;
+        }
+        .stats {
+          gap: 8px;
+        }
+        .stat {
+          min-width: 95px;
+          padding: 10px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="navbar">
+      <a class="brand" href="#">
+        <span class="brand-icon">C</span>
+        <span>COTE Library</span>
+      </a>
+      <span class="nav-label">Light Novel PDF Collection</span>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <span class="eyebrow">✦ LIGHT NOVEL COLLECTION</span>
+        <h1>Welcome to <span class="gradient-text">COTE Library</span></h1>
+        <p>
+          Explore the Classroom of the Elite collection. Find your volumes and
+          download individual PDFs or the entire collection.
+        </p>
+
+        <div class="stats">
+          <div class="stat">
+            <strong id="total-count">0</strong>
+            <span>PDF files</span>
+          </div>
+          <div class="stat">
+            <strong>3 + Special</strong>
+            <span>Collections</span>
+          </div>
+          <div class="stat">
+            <strong>ZIP</strong>
+            <span>All-in-one download</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="download-panel">
+        <div style="flex: 1; min-width: 0">
+          <h2>Download the entire collection</h2>
+          <p>
+            Bundle all Year 1, Year 2, Year 3 and Special PDFs into one ZIP
+            file.
+          </p>
+
+          <div class="progress-wrap" id="progress-wrap" aria-live="polite">
+            <div id="progress-label" class="status">Preparing files...</div>
+            <div class="progress-track">
+              <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div id="status" class="status">Please wait.</div>
+          </div>
+        </div>
+
+        <button class="button button-primary" id="zip-button" type="button">
+          <span>↓</span> Download All ZIP
+        </button>
+      </section>
+
+      <div class="toolbar">
+        <h2>Browse Volumes</h2>
+        <input
+          class="search"
+          id="search"
+          type="search"
+          placeholder="Search volumes..."
+          aria-label="Search volumes"
+        />
+      </div>
+
+      <div id="library"></div>
+      <div class="empty" id="empty">No volumes match your search.</div>
+    </main>
+
+    <footer>
+      COTE Library · Personal PDF collection interface
+      <br />
+      Only share files you have permission to distribute.
+    </footer>
+
+    <script>
+      // All files are listed here.
+      // The interface and ZIP download both use this same collection.
+
+      const collections = [
+        {
+          year: "Year 1",
+          folder: "Y1",
+          files: [
+            "COTE Year 1 Vol 1.pdf",
+            "COTE Year 1 Vol 2.pdf",
+            "COTE Year 1 Vol 3.pdf",
+            "COTE Year 1 Vol 4.pdf",
+            "COTE Year 1 Vol 4.5.pdf",
+            "COTE Year 1 Vol 5.pdf",
+            "COTE Year 1 Vol 6.pdf",
+            "COTE Year 1 Vol 7.pdf",
+            "COTE Year 1 Vol 7.5.pdf",
+            "COTE Year 1 Vol 8.pdf",
+            "COTE Year 1 Vol 9.pdf",
+            "COTE Year 1 Vol 10.pdf",
+            "COTE Year 1 Vol 11.pdf",
+            "COTE Year 1 Vol 11.5.pdf",
+            "COTE Year 1 Vol 11.75.pdf",
+          ],
+        },
+        {
+          year: "Year 2",
+          folder: "Y2",
+          files: [
+            "COTE Year 2 Vol 1.pdf",
+            "COTE Year 2 Vol 2.pdf",
+            "COTE Year 2 Vol 3.pdf",
+            "COTE Year 2 Vol 4.pdf",
+            "COTE Year 2 Vol 4.5.pdf",
+            "COTE Year 2 Vol 5.pdf",
+            "COTE Year 2 Vol 6.pdf",
+            "COTE Year 2 Vol 7.pdf",
+            "COTE Year 2 Vol 8.pdf",
+            "COTE Year 2 Vol 9.pdf",
+            "COTE Year 2 Vol 9.5.pdf",
+            "COTE Year 2 Vol 9.75.pdf",
+            "COTE Year 2 Vol 10.pdf",
+            "COTE Year 2 Vol 10.25.pdf",
+            "COTE Year 2 Vol 11.pdf",
+            "COTE Year 2 Vol 12.pdf",
+            "COTE Year 2 Vol 12.5.pdf",
+          ],
+        },
+        {
+          year: "Year 3",
+          folder: "Y3",
+          files: [
+            "COTE Year 3 Vol 1.pdf",
+            "COTE Year 3 Vol 2.pdf",
+            "COTE Year 3 Vol 3.pdf",
+            "COTE Year 3 Vol 3 SS.pdf",
+            "COTE Year 3 Vol 4.pdf",
+          ],
+        },
+        {
+          year: "Special",
+          folder: ".",
+          files: ["COTE Vol 0.pdf"],
+        },
+      ];
+
+      const allFiles = collections.flatMap((collection) =>
+        collection.files.map((name) => ({
+          name,
+          year: collection.year,
+          folder: collection.folder,
+          path:
+            collection.folder === "." ? name : `${collection.folder}/${name}`,
+        })),
+      );
+
+      const library = document.getElementById("library");
+      const search = document.getElementById("search");
+      const empty = document.getElementById("empty");
+
+      document.getElementById("total-count").textContent = allFiles.length;
+
+      function renderLibrary(query = "") {
+        library.replaceChildren();
+
+        const normalizedQuery = query.trim().toLowerCase();
+        let visibleCount = 0;
+
+        collections.forEach((collection) => {
+          const files = allFiles.filter(
+            (file) =>
+              file.folder === collection.folder &&
+              file.name.toLowerCase().includes(normalizedQuery),
+          );
+
+          if (!files.length) return;
+          visibleCount += files.length;
+
+          const section = document.createElement("section");
+          section.className = "year-section";
+
+          const heading = document.createElement("div");
+          heading.className = "year-heading";
+
+          const title = document.createElement("h3");
+          title.textContent =
+            collection.year === "Special"
+              ? "Classroom of the Elite — Special"
+              : `Classroom of the Elite — ${collection.year}`;
+
+          const count = document.createElement("span");
+          count.textContent = `${files.length} ${files.length === 1 ? "volume" : "volumes"}`;
+
+          heading.append(title, count);
+
+          const grid = document.createElement("div");
+          grid.className = "volume-grid";
+
+          files.forEach((file) => {
+            const card = document.createElement("article");
+            card.className = "volume-card";
+
+            const icon = document.createElement("div");
+            icon.className = "pdf-icon";
+            icon.textContent = "PDF";
+
+            const info = document.createElement("div");
+            info.className = "volume-info";
+
+            const name = document.createElement("strong");
+            name.textContent = file.name.replace(/\.pdf$/i, "");
+
+            const subtitle = document.createElement("span");
+            subtitle.textContent = `${file.year} · PDF document`;
+
+            info.append(name, subtitle);
+
+            const link = document.createElement("a");
+            link.className = "download-icon";
+            link.href = encodeURI(file.path);
+            link.download = file.name;
+            link.title = `Download ${file.name}`;
+            link.setAttribute("aria-label", `Download ${file.name}`);
+            link.textContent = "↓";
+
+            card.append(icon, info, link);
+            grid.append(card);
+          });
+
+          section.append(heading, grid);
+          library.append(section);
+        });
+
+        empty.style.display = visibleCount ? "none" : "block";
+      }
+
+      search.addEventListener("input", (event) => {
+        renderLibrary(event.target.value);
+      });
+
+      renderLibrary();
+
+      // Download all PDFs into a single ZIP archive.
+      const zipButton = document.getElementById("zip-button");
+      const progressWrap = document.getElementById("progress-wrap");
+      const progressBar = document.getElementById("progress-bar");
+      const progressLabel = document.getElementById("progress-label");
+      const status = document.getElementById("status");
+
+      zipButton.addEventListener("click", async () => {
+        if (typeof JSZip === "undefined") {
+          alert(
+            "JSZip could not load. Check your internet connection and reload the page.",
+          );
+          return;
+        }
+
+        zipButton.disabled = true;
+        zipButton.textContent = "Preparing ZIP...";
+        progressWrap.classList.add("visible");
+        progressBar.style.width = "0%";
+        progressLabel.textContent = "Starting download...";
+        status.textContent = "Checking PDF files...";
+
+        try {
+          const zip = new JSZip();
+          const missing = [];
+          let completed = 0;
+
+          for (const file of allFiles) {
+            progressLabel.textContent = `Processing ${completed + 1} of ${allFiles.length}`;
+            status.textContent = file.name;
+
+            try {
+              const response = await fetch(encodeURI(file.path));
+
+              if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+              }
+
+              const blob = await response.blob();
+
+              if (blob.size === 0) {
+                throw new Error("Empty file");
+              }
+
+              // Keep Year 1, Year 2 and Year 3 in separate ZIP folders.
+              // Place the Special volume at the root of the ZIP.
+              const zipPath =
+                file.folder === "." ? file.name : `${file.folder}/${file.name}`;
+
+              zip.file(zipPath, blob);
+            } catch (error) {
+              missing.push(`${file.path}: ${error.message}`);
+            }
+
+            completed++;
+            progressBar.style.width = `${(completed / allFiles.length) * 100}%`;
+          }
+
+          if (missing.length > 0) {
+            const details = missing.slice(0, 8).join("\n");
+            const more =
+              missing.length > 8
+                ? `\n...and ${missing.length - 8} more files.`
+                : "";
+
+            const shouldContinue = confirm(
+              `${missing.length} PDF file(s) could not be loaded:\n\n` +
+                details +
+                more +
+                "\n\nCreate a ZIP containing only the files that loaded successfully?",
+            );
+
+            if (!shouldContinue) {
+              progressLabel.textContent = "ZIP creation cancelled.";
+              status.textContent =
+                "Check the missing file paths and try again.";
+              return;
+            }
+          }
+
+          if (Object.keys(zip.files).length === 0) {
+            throw new Error(
+              "No PDFs could be loaded. Check the paths and hosting setup.",
+            );
+          }
+
+          progressLabel.textContent = "Compressing files...";
+          status.textContent = "Generating ZIP archive...";
+
+          const content = await zip.generateAsync(
+            {
+              type: "blob",
+              compression: "DEFLATE",
+              compressionOptions: { level: 5 },
+            },
+            (metadata) => {
+              progressBar.style.width = `${metadata.percent}%`;
+              progressLabel.textContent = `Compressing ZIP: ${Math.round(metadata.percent)}%`;
+            },
+          );
+
+          const url = URL.createObjectURL(content);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "COTE-Light-Novel-Collection.zip";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
+
+          progressLabel.textContent = "ZIP created successfully!";
+          status.textContent = `${Object.keys(zip.files).length} PDF file(s) included.`;
+        } catch (error) {
+          console.error("ZIP creation failed:", error);
+          progressLabel.textContent = "Download failed";
+          status.textContent = error.message;
+
+          alert(
+            "Could not create the ZIP file.\n\n" +
+              error.message +
+              "\n\nCheck the PDF paths and run the website through a local server or hosting.",
+          );
+        } finally {
+          zipButton.disabled = false;
+          zipButton.innerHTML = "<span>↓</span> Download All ZIP";
+        }
+      });
+    </script>
+  </body>
+</html>
